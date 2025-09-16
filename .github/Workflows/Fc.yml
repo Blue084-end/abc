@@ -1,0 +1,87 @@
+name: Android CI Full Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  android-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: ☕ Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: gradle
+
+    - name: 🔧 Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # 🧪 Android Lint
+    - name: 🧪 Run Android Lint
+      run: ./gradlew lint
+
+    # 📏 Static Code Analysis: Checkstyle & PMD
+    - name: 📏 Run Checkstyle
+      run: ./gradlew checkstyle
+
+    - name: 🧠 Run PMD
+      run: ./gradlew pmd
+
+    # 🐞 SpotBugs / FindBugs
+    - name: 🐞 Run SpotBugs
+      run: ./gradlew spotbugsMain
+
+    # 🔍 Security Scan: SonarQube
+    - name: 🔍 Run SonarQube Scan
+      run: ./gradlew sonar
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    # 🧬 Dependency Scan: OWASP
+    - name: 🧬 Run OWASP Dependency Check
+      run: |
+        mkdir -p dependency-check
+        wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
+        unzip dependency-check-8.4.0-release.zip -d dependency-check
+        ./dependency-check/bin/dependency-check.sh --project "AndroidApp" --scan ./app
+
+    # 📊 Code Coverage: Jacoco
+    - name: 📊 Run Jacoco Coverage
+      run: ./gradlew jacocoTestReport
+
+    # 🧩 Custom Rules Scan: Detekt (Kotlin)
+    - name: 🧩 Run Detekt
+      run: ./gradlew detekt
+
+    # 🛡️ Manifest & Permission Scan (MobSF placeholder)
+    - name: 🛡️ Manifest Scan (custom script)
+      run: |
+        grep -i "<uses-permission" app/src/main/AndroidManifest.xml || echo "No permissions found"
+
+    # 🔐 Secrets Scan
+    - name: 🔐 Run Secrets Scan
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        config-path: .gitleaks.toml
+
+    # 🧯 Runtime Scan: StrictMode & LeakCanary (placeholder)
+    - name: 🧯 Runtime Scan Reminder
+      run: echo "StrictMode & LeakCanary should be configured in app code and tested during instrumentation tests"
+
+    # 🧠 CPD (Copy-Paste Detector)
+    - name: 🧠 Run CPD
+      run: ./gradlew cpdCheck
+
+    # 📋 Show Environment Info
+    - name: 📋 Show Java & Gradle Info
+      run: |
+        java -version
+        ./gradlew --version
