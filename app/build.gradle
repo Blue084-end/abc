@@ -1,0 +1,50 @@
+plugins {
+id 'com.android.application'
+id 'kotlin-android' // Nếu bạn dùng Kotlin
+}
+
+android {
+namespace 'com.example.webrow'
+compileSdk 34
+
+defaultConfig {
+applicationId "com.example.webrow"
+minSdk 24 // Đủ để hỗ trợ hầu hết thiết bị hiện nay
+targetSdk 34
+versionCode 1
+versionName "1.0"
+
+// Cho phép WebView dùng tính năng hiện đại
+manifestPlaceholders = [
+'android.webkit.WebView.EnableSafeBrowsing': 'true'
+]
+}
+
+buildTypes {
+release {
+minifyEnabled false
+proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+}
+}
+
+compileOptions {
+sourceCompatibility JavaVersion.VERSION_17
+targetCompatibility JavaVersion.VERSION_17
+}
+
+kotlinOptions {
+jvmTarget = '17'
+}
+}
+
+dependencies {
+implementation 'androidx.core:core-ktx:1.12.0'
+implementation 'androidx.appcompat:appcompat:1.6.1'
+implementation 'com.google.android.material:material:1.11.0'
+
+// WebKit để kiểm soát WebView nâng cao
+implementation 'androidx.webkit:webkit:1.10.0'
+
+// Nếu bạn cần xử lý video, media, hoặc file download
+implementation 'androidx.media3:media3-exoplayer:1.2.0'
+}
